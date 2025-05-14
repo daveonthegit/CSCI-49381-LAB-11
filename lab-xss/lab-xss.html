@@ -1,0 +1,185 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>CSCI 493-81: Security Lab - Cross-Site Scripting (XSS)</title>
+    <link rel="stylesheet" type="text/css" charset="utf-8" media="all"
+      href="other/common.css">
+    <link rel="stylesheet" type="text/css" charset="utf-8"
+      media="screen" href="other/screen.css">
+  </head>
+  <body dir="ltr" lang="en">
+    <div id="page" dir="ltr" lang="en">
+      <h1>Security Lab: Cross-Site Scripting (XSS)</h1>
+      <div class="author">Based on a lab created by Brandon Paulsen with
+        Peter Peterson<br>
+        <br>
+        May 7, 2025<br>
+      </div>
+      <!--
+<div class="due-date">Put your due date here if you are including the exercise in your class.</div>
+-->Overview
+      <p> </p>
+      <p>The purpose of this page is to introduce you to the concept of
+        Cross-Site Scripting (XSS). In this lab, you will use a
+        Persistent Cross-Site Scripting attack against a web forum in
+        order to steal the authentication cookie of an administrator and
+        deface the forum. Then you will fix the flaw in the forum code,
+        create a patch, and write about it. You should be familiar with
+        the Unix command line, POSIX permissions, and basic programming.
+        The exercise will also use C and HTTP, but at introductory
+        levels. </p>
+      <p><span class="anchor" id="inputvalandsan"></span> </p>
+      <h3>Persistent Cross Site Scripting</h3>
+      <p>Persistent Cross Site Scripting is an exploit where an attacker
+        inserts malicious code or HTML into a persistent web page.
+        Forums and “comment sections” are particularly vulnerable,
+        especially when users are able to post data with arbitrary
+        characters. The exploit occurs when arbitrary code (HTML and
+        Javascript, for example) is simply “pasted in” to the display
+        page -- think of a comment section or forum where post after
+        post are concatenated together. If the user is able to include
+        Javascript in the post, then, thanks to the <a
+          href="https://en.wikipedia.org/wiki/Same-origin_policy"
+          target="_blank">Same Origin Policy</a> the script will run as
+        if it were part of the original webpage! Since it’s part of the
+        original page, it can steal things like cookies (and potentially
+        passwords that might be useful on other sites) and cause the
+        browser to misbehave in other ways. We prevent XSS attacks by
+        validating and sanitizing user input, similar to SQL injection.
+        See the following section for more information on prevention.
+        For more information, see the excellent XSS tutorial site, <a
+          href="http://excess-xss.com/" target="_blank">http://excess-xss.com/</a>.
+        You might also enjoy reading about XSS attacks in “24 Deadly
+        Sins of Software Security,” where it is Sin #2. </p>
+      <div class="infobox">
+        <p><img src="other/idea.png"> Hint: The type of XSS attack
+          you’ll be performing is called a persistent XSS attack, as
+          opposed to reflected or DOM-based attacks. </p>
+        <p> </p>
+      </div>
+      <p><span class="anchor" id="seealso"></span> </p>
+      <h2>See Also</h2>
+      <p>The OWASP project has a <a
+          href="https://owasp.org/www-community/attacks/xss/"
+          target="_blank">great writeup on XSS attacks</a>, including
+        examples, that you may find useful. </p>
+      <p>And again, the <a href="https://excess-xss.com/"
+          target="_blank">Excess XSS site is a great resource including
+          instructional information.</a> <span class="anchor"
+          id="inputvalandsan"></span> </p>
+      <h3>Input Validation and Sanitization</h3>
+      <p>One of your tasks is to patch an XSS vulnerability web forum
+        that allows persistent Javascript to be included in forum posts.
+        The default forum code doesn’t even attempt to strip HTML tags
+        from the user’s posts. Improved code exists in the forum
+        software (see below) and you’ll need to enable and attack each
+        improvement (there are ways to circumvent them). In addition,
+        the forum users sometimes have legitimate reasons to include
+        input in their post that is HTML-like. For example, users like
+        to make <a href="https://en.wikipedia.org/wiki/ASCII_art"
+          target="_blank">ASCII art</a> and discuss code in various
+        programming languages, so we cannot simply restrict forum posts
+        to alphanumeric symbols. Instead, we want to allow users to
+        include any printable characters in their posts in a way that
+        removes any special meanings that the characters have in HTML.
+        To do this, we convert special characters (such as ‘&lt;’ or
+        ‘&gt;’) in the user’s input to their corresponding <a
+href="https://en.wikipedia.org/wiki/Character_encodings_in_HTML#HTML_character_references"
+          target="_blank">HTML encoding</a>. This will tell the browser
+        to just display the special character rather than interpret it
+        as part of the HTML. </p>
+      <p>Fortunately, most server-side scripting languages have several,
+        several built in functions for validating and sanitizing string
+        data. For this lab, we will focus on the PHP language, and we
+        will be using its filtering functions to encode special
+        characters in the user’s input. PHP has at least two functions
+        for this: filter_var() and htmlspecialchars(). Generally, we
+        want to use built in functions rather than home-brewed functions
+        for the same reason we use well-known encryption algorithms
+        rather than home-brewed algorithms. Information on these
+        built-in functions is found below: <span class="anchor"
+          id="filtervar"></span> </p>
+      <h4>filter_var()</h4>
+      <p>filter_var() takes a string to be filtered, a filter id that
+        corresponds to one of PHP’s built-in filters, and an optional
+        flag value. It returns the given string with the specified
+        filter applied to it. The filters available for use are
+        documented listed in the PHP documentation here: <a
+          href="https://php.net/manual/en/filter.filters.sanitize.php"
+          target="_blank">https://php.net/manual/en/filter.filters.sanitize.php</a>
+      </p>
+      <p>And the documentation for filter_var itself is found here: <a
+          href="https://php.net/manual/en/function.filter-var.php"
+          target="_blank">https://php.net/manual/en/function.filter-var.php</a>
+        <span class="anchor" id="htmlspecialchars"></span> </p>
+      <h4>htmlspecialchars()</h4>
+      <p>htmlspecialchars() works similarly to filter_var(). It takes a
+        string as input and returns the same string with a static filter
+        applied to it. The transformations and additional options for
+        the function can be found here: <a
+          href="https://php.net/manual/en/function.htmlspecialchars.php"
+          target="_blank">https://php.net/manual/en/function.htmlspecialchars.php</a>
+        <span class="anchor" id="assignment"></span> </p>
+      <span class="anchor" id="tarball101"></span>
+      <h2>Tarball 101</h2>
+      <span class="anchor" id="howtomaketarball"></span>
+      <h3>How Do I Make a Tarball?</h3>
+      <p>To make a gzipped tarball, you first put all your files into a
+        directory, and then you combine (tar) and compress (gzip) the
+        file. </p>
+      <div class="warning">
+        <p><img src="other/alert.png"> If you’re unfamiliar with moving
+          files on the command line, please make a test tarball with
+          dummy files so you don’t accidentally wreck your homework. </p>
+      </div>
+      <p>Step-by-step instructions to make your own tarball: </p>
+      <ol>
+        <li> Make a directory, e.g., using
+          <p style="font-family: monospace; font-size: 1rem;">$ mkdir
+            foo</p>
+        </li>
+        <br>
+        <li> Make some files you want to compress (e.g., your homework).
+          We can make some test files using
+          <p style="font-family: monospace; font-size: 1rem;">$ touch a
+            b c </p>
+          <br>
+          … which makes three empty files, a, b, and c. </li>
+        <br>
+        <li> Move those files into the directory we’re going to tar:
+          <p style="font-family: monospace; font-size: 1rem;">$ mv a foo</p>
+          <p style="font-family: monospace; font-size: 1rem;">$ mv b foo</p>
+          <p style="font-family: monospace; font-size: 1rem;">$ mv c foo</p>
+          <br>
+          <p>You could also do</p>
+          <p style="font-family: monospace; font-size: 1rem;">$ mv a b c
+            foo</p>
+        </li>
+        <br>
+        <li> Make a tarball out of the directory and it’s contents, by
+          doing
+          <p style="font-family: monospace; font-size: 1rem;">$ tar cvzf
+            foo.tar.gz foo</p>
+          <br>
+          That command says to tar with the options c (compress), v
+          (verbose -- say what’s happening), z (compress), and f (“with
+          the files specified on the command line”) and then you specify
+          the compressed file to create and the directory to compress. </li>
+        <br>
+      </ol>
+      <p>When finished, you’ll have a tarball: foo.tar.gz.<br>
+      </p>
+      <p>So, for this project, make a directory called xss (or
+        whatever). <span class="anchor" id="howtounziptarball"></span>
+      </p>
+      <h3>How Do I Unzip the Tarball I Just Made?</h3>
+      <p>To unzip it, do: </p>
+      <p style="font-family: monospace; font-size: 1rem;">$ tar xvzf
+        foo.tar.gz</p>
+      <p>Where the only difference is the x, which means “extract.”
+        Please note that if the directory foo/ exists, it will be
+        overwritten. </p>
+    </div>
+  </body>
+</html>
