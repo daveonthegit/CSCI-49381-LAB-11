@@ -1,0 +1,10 @@
+Subject: A Masterclass in Aerial Infiltration
+
+Dear Lord Dingwall,
+
+It appears your forum was not nearly as fortified as expected. Each layer of your defense, though perhaps well-intentioned, fell in sequence to carefully crafted attacks. The first was the simplest, a raw <script> tag. The second cleverly hid behind an innocent-looking <img> tag using onerror. The third exploited the fact that even recursive sanitization routines were narrowly scoped, only targeting <script> while leaving other dangerous tags untouched. And finally, your last and most aggressive line of defense, a full tag-stripping regex, collapsed when faced with a payload that simply omitted the closing angle bracket. The regex failed to match it, but the browser had no problem interpreting it.
+
+With each successful injection, your session cookie was quietly collected and delivered to Teshwan’s steal.php, which proudly created the “Eagles” category in your name. Your forum now bears the signature of our superiority, a gentle but firm reminder that true control comes from above.
+
+With regards,
+King Teshwan
